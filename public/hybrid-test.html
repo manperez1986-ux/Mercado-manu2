@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1,viewport-fit=cover"
+>
+
+<title>Mercado Manu - Voz Híbrida</title>
+
+<style>
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  padding:18px;
+  min-height:100vh;
+  font-family:Arial,sans-serif;
+  background:#eef2fa;
+  color:#101027;
+}
+
+.container{
+  max-width:560px;
+  margin:auto;
+}
+
+.card{
+  background:white;
+  border-radius:24px;
+  padding:18px;
+  margin-bottom:14px;
+  box-shadow:0 6px 24px rgba(0,0,0,.08);
+}
+
+h1{
+  margin:0;
+  font-size:25px;
+}
+
+.subtitle{
+  color:#666680;
+  font-size:14px;
+  line-height:1.45;
+  margin-top:7px;
+}
+
+.mic{
+  width:86px;
+  height:86px;
+  margin:20px auto 12px;
+  border:none;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:36px;
+  color:white;
+  cursor:pointer;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7209b7,
+      #00b4d8
+    );
+
+  box-shadow:
+    0 8px 28px
+    rgba(114,9,183,.35);
+}
+
+.mic.listening{
+  background:
+    linear-gradient(
+      135deg,
+      #ff0055,
+      #ff6b35
+    );
+
+  animation:
+    pulse 1.2s infinite;
+}
+
+@keyframes pulse{
+
+  0%{
+    transform:scale(1);
+    box-shadow:
+      0 0 0 0
+      rgba(255,0,85,.5);
+  }
+
+  70%{
+    transform:scale(1.07);
+    box-shadow:
+      0 0 0 20px
+      rgba(255,0,85,0);
+  }
+
+  100%{
+    transform:scale(1);
+  }
+
+}
+
+.status{
+  text-align:center;
+  font-weight:bold;
+  color:#0077aa;
+  min-height:42px;
+}
+
+.transcript{
+  margin-top:14px;
+  min-height:100px;
+  padding:14px;
+  border-radius:16px;
+  background:#f5f6fa;
+  border:1px solid #dddfea;
+  font-size:16px;
+  line-height:1.5;
+}
+
+.label{
+  font-size:11px;
+  text-transform:uppercase;
+  font-weight:bold;
+  color:#77778e;
+  margin-bottom:7px;
+}
+
+.result-local{
+  color:#0077aa;
+  font-size:19px;
+  font-weight:900;
+  margin-bottom:10px;
+}
+
+.product{
+  background:#f7f8fc;
+  border:1px solid #e1e3ec;
+  border-radius:15px;
+  padding:13px;
+  margin-top:9px;
+}
+
+.product-name{
+  font-size:17px;
+  font-weight:900;
+}
+
+.price{
+  margin-top:5px;
+  color:#00855a;
+  font-size:16px;
+  font-weight:900;
+}
+
+.quantity{
+  color:#7209b7;
+  font-weight:bold;
+  margin-top:4px;
+}
+
+.badge{
+  display:inline-block;
+  margin-top:6px;
+  padding:4px 8px;
+  border-radius:8px;
+  font-size:11px;
+  font-weight:bold;
+  background:#e7fff5;
+  color:#00855a;
+}
+
+.actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:12px;
+}
+
+button.small{
+  border:0;
+  border-radius:14px;
+  padding:13px;
+  font-weight:bold;
+  font-size:14px;
+}
+
+.clear{
+  background:#fff0e7;
+  color:#c54a00;
+}
+
+.stop{
+  background:#eeeeF4;
+  color:#333;
+}
+
+.debug{
+  font-family:monospace;
+  font-size:11px;
+  white-space:pre-wrap;
+  word-break:break-word;
+  background:#11111d;
+  color:#d9e7ff;
+  padding:12px;
+  border-radius:14px;
+  max-height:180px;
+  overflow:auto;
+}
+
+.error{
+  color:#d00000;
+  font-weight:bold;
+}
+
+.success{
+  color:#00855a;
+  font-weight:bold;
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+<div class="card">
+
+  <h1>
+    🛒 Mercado Manu
+  </h1>
+
+  <p class="subtitle">
+    Prueba del nuevo dictado automático.
+    Pulsa el micrófono una vez,
+    habla normalmente y cuando te calles
+    la aplicación procesará sola.
+  </p>
+
+
+  <button
+    id="mic"
+    class="mic"
+    onclick="toggleMicrophone()"
+  >
+    🎙️
+  </button>
+
+
+  <div
+    id="status"
+    class="status"
+  >
+    Pulsa 🎙️ para comenzar
+  </div>
+
+
+  <div class="label">
+    Lo que estoy entendiendo
+  </div>
+
+
+  <div
+    id="transcript"
+    class="transcript"
+  >
+    Aquí aparecerá lo que digas...
+  </div>
+
+
+  <div class="actions">
+
+    <button
+      class="small clear"
+      onclick="clearEverything()"
+    >
+      🧹 Limpiar
+    </button>
+
+    <button
+      class="small stop"
+      onclick="stopListening()"
+    >
+      ⏹️ Detener
+    </button>
+
+  </div>
+
+</div>
+
+
+
+<div class="card">
+
+  <div class="label">
+    Resultado automático
+  </div>
+
+  <div id="result">
+    Todavía no hay productos.
+  </div>
+
+</div>
+
+
+
+<div class="card">
+
+  <div class="label">
+    Diagnóstico
+  </div>
+
+  <div
+    id="debug"
+    class="debug"
+  >
+    Esperando...
+  </div>
+
+</div>
+
+
+</div>
+
+
+
+<script>
+
+"use strict";
+
+
+/* ==========================================
+   ESTADO
+========================================== */
+
+
+let recognition = null;
+
+let isListening = false;
+
+let confirmedText = "";
+
+let interimText = "";
+
+let silenceTimer = null;
+
+let restartTimer = null;
+
+let processing = false;
+
+let lastProcessedText = "";
+
+let lastFinalAt = 0;
+
+
+/*
+  Tiempo de silencio antes
+  de procesar automáticamente.
+*/
+
+const SILENCE_TIME = 1400;
+
+
+
+/* ==========================================
+   UTILIDADES
+========================================== */
+
+
+function $(id){
+
+  return document.getElementById(id);
+
+}
+
+
+
+function normalizeText(text){
+
+  return String(text || "")
+    .replace(/\s+/g," ")
+    .replace(/\s+([,.])/g,"$1")
+    .trim();
+
+}
+
+
+
+function comparable(text){
+
+  return String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^\p{L}\p{N}]+/gu," ")
+    .replace(/\s+/g," ")
+    .trim();
+
+}
+
+
+
+function debug(message){
+
+  const time =
+    new Date()
+      .toLocaleTimeString();
+
+
+  $("debug").textContent =
+    "[" +
+    time +
+    "] " +
+    message +
+    "\n" +
+    $("debug").textContent;
+
+}
+
+
+
+/* ==========================================
+   UNIR TEXTO SIN DUPLICAR
+========================================== */
+
+
+function smartAppend(
+  original,
+  addition
+){
+
+  original =
+    normalizeText(
+      original
+    );
+
+
+  addition =
+    normalizeText(
+      addition
+    );
+
+
+  if(!original){
+
+    return addition;
+
+  }
+
+
+  if(!addition){
+
+    return original;
+
+  }
+
+
+  const a =
+    comparable(
+      original
+    );
+
+
+  const b =
+    comparable(
+      addition
+    );
+
+
+  /*
+    Frase idéntica.
+  */
+
+  if(a === b){
+
+    return original;
+
+  }
+
+
+  /*
+    El texto nuevo ya está
+    dentro del anterior.
+  */
+
+  if(
+    a.includes(b)
+  ){
+
+    return original;
+
+  }
+
+
+  /*
+    El navegador devolvió
+    una versión más completa.
+  */
+
+  if(
+    b.includes(a)
+  ){
+
+    return addition;
+
+  }
+
+
+  /*
+    Buscar palabras superpuestas.
+  */
+
+  const originalWords =
+    original.split(/\s+/);
+
+
+  const additionWords =
+    addition.split(/\s+/);
+
+
+  const max =
+    Math.min(
+      originalWords.length,
+      additionWords.length,
+      12
+    );
+
+
+  for(
+    let size=max;
+    size>=2;
+    size--
+  ){
+
+    const ending =
+      comparable(
+        originalWords
+          .slice(-size)
+          .join(" ")
+      );
+
+
+    const beginning =
+      comparable(
+        additionWords
+          .slice(0,size)
+          .join(" ")
+      );
+
+
+    if(
+      ending === beginning
+    ){
+
+      return normalizeText(
+
+        original +
+        " " +
+        additionWords
+          .slice(size)
+          .join(" ")
+
+      );
+
+    }
+
+  }
+
+
+  return normalizeText(
+
+    original +
+    " " +
+    addition
+
+  );
+
+}
+
+
+
+/* ==========================================
+   TEXTO COMPLETO
+========================================== */
+
+
+function getFullText(){
+
+  return smartAppend(
+
+    confirmedText,
+
+    interimText
+
+  );
+
+}
+
+
+
+function updateTranscript(){
+
+  const text =
+    getFullText();
+
+
+  $("transcript").textContent =
+    text ||
+    "Escuchando...";
+
+}
+
+
+
+/* ==========================================
+   TEMPORIZADOR DE SILENCIO
+========================================== */
+
+
+function resetSilenceTimer(){
+
+  clearTimeout(
+    silenceTimer
+  );
+
+
+  silenceTimer =
+    setTimeout(
+      function(){
+
+        const text =
+          getFullText();
+
+
+        if(!text){
+
+          return;
+
+        }
+
+
+        /*
+          No procesamos dos veces
+          exactamente la misma frase.
+        */
+
+        if(
+          comparable(text) ===
+          comparable(lastProcessedText)
+        ){
+
+          return;
+
+        }
+
+
+        debug(
+          "Silencio detectado."
+        );
+
+
+        processAutomatically();
+
+      },
+      SILENCE_TIME
+    );
+
+}
+
+
+
+/* ==========================================
+   CREAR RECONOCIMIENTO
+========================================== */
+
+
+function createRecognition(){
+
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+
+  if(!SpeechRecognition){
+
+    return null;
+
+  }
+
+
+  const sr =
+    new SpeechRecognition();
+
+
+  /*
+    Comportamiento tomado
+    de la versión anterior.
+  */
+
+  sr.continuous =
+    true;
+
+
+  sr.interimResults =
+    true;
+
+
+  sr.lang =
+    "es-VE";
+
+
+  sr.maxAlternatives =
+    1;
+
+
+
+  sr.onstart =
+    function(){
+
+      debug(
+        "Micrófono iniciado"
+      );
+
+
+      $("status").textContent =
+        "🎙️ Escuchando... habla normalmente";
+
+
+      $("mic")
+        .classList
+        .add(
+          "listening"
+        );
+
+
+      $("mic").textContent =
+        "⏹️";
+
+  };
+
+
+
+  sr.onresult =
+    function(event){
+
+
+      let newFinal =
+        "";
+
+
+      let newInterim =
+        "";
+
+
+      for(
+
+        let i =
+          event.resultIndex;
+
+        i <
+          event.results.length;
+
+        i++
+
+      ){
+
+        const text =
+          normalizeText(
+
+            event
+              .results[i][0]
+              .transcript
+
+          );
+
+
+        if(!text){
+
+          continue;
+
+        }
+
+
+        if(
+          event
+            .results[i]
+            .isFinal
+        ){
+
+          newFinal =
+            smartAppend(
+              newFinal,
+              text
+            );
+
+        }
+
+        else{
+
+          newInterim =
+            smartAppend(
+              newInterim,
+              text
+            );
+
+        }
+
+      }
+
+
+      /*
+        Cuando llega texto final,
+        pasa al buffer confirmado.
+      */
+
+      if(newFinal){
+
+        confirmedText =
+          smartAppend(
+
+            confirmedText,
+
+            newFinal
+
+          );
+
+
+        interimText =
+          "";
+
+
+        lastFinalAt =
+          Date.now();
+
+
+        debug(
+          "FINAL: " +
+          newFinal
+        );
+
+      }
+
+
+      else{
+
+        interimText =
+          newInterim;
+
+
+        if(newInterim){
+
+          debug(
+            "interim: " +
+            newInterim
+          );
+
+        }
+
+      }
+
+
+      updateTranscript();
+
+
+      /*
+        Cada vez que llega voz,
+        reiniciamos el contador.
+      */
+
+      resetSilenceTimer();
+
+  };
+
+
+
+  sr.onerror =
+    function(event){
+
+
+      debug(
+        "ERROR: " +
+        event.error
+      );
+
+
+      /*
+        Este error fue el que
+        vimos durante tus pruebas.
+
+        NO borramos el texto.
+      */
+
+      if(
+        event.error ===
+        "network"
+      ){
+
+        $("status").textContent =
+          "⚠️ Se cortó el reconocimiento. Reconectando...";
+
+
+        /*
+          Si ya tenemos texto,
+          intentamos procesarlo.
+        */
+
+        if(
+          getFullText()
+        ){
+
+          resetSilenceTimer();
+
+        }
+
+
+        return;
+
+      }
+
+
+      if(
+        event.error ===
+        "not-allowed" ||
+        event.error ===
+        "service-not-allowed"
+      ){
+
+        isListening =
+          false;
+
+
+        $("status").textContent =
+          "❌ Debes permitir el micrófono";
+
+
+        $("mic")
+          .classList
+          .remove(
+            "listening"
+          );
+
+
+        $("mic").textContent =
+          "🎙️";
+
+
+        return;
+
+      }
+
+
+      if(
+        event.error ===
+        "no-speech"
+      ){
+
+        $("status").textContent =
+          "🎙️ Sigo escuchando...";
+
+      }
+
+  };
+
+
+
+  sr.onend =
+    function(){
+
+
+      debug(
+        "Reconocimiento finalizó"
+      );
+
+
+      /*
+        Conservamos cualquier
+        provisional que quede.
+      */
+
+      if(
+        interimText
+      ){
+
+        confirmedText =
+          smartAppend(
+
+            confirmedText,
+
+            interimText
+
+          );
+
+
+        interimText =
+          "";
+
+
+        updateTranscript();
+
+      }
+
+
+      /*
+        Si seguimos en modo escucha,
+        reiniciamos automáticamente,
+        igual que tu versión anterior.
+      */
+
+      if(
+        isListening
+      ){
+
+        clearTimeout(
+          restartTimer
+        );
+
+
+        restartTimer =
+          setTimeout(
+            function(){
+
+
+              if(
+                !isListening
+              ){
+
+                return;
+
+              }
+
+
+              try{
+
+                sr.start();
+
+
+                debug(
+                  "Reinicio automático"
+                );
+
+              }
+
+              catch(error){
+
+                debug(
+                  "Error reinicio: " +
+                  error.message
+                );
+
+              }
+
+            },
+            350
+          );
+
+      }
+
+
+      else{
+
+        $("status").textContent =
+          "Micrófono detenido";
+
+
+        $("mic")
+          .classList
+          .remove(
+            "listening"
+          );
+
+
+        $("mic").textContent =
+          "🎙️";
+
+      }
+
+  };
+
+
+  return sr;
+
+}
+
+
+
+/* ==========================================
+   INICIAR
+========================================== */
+
+
+function startListening(){
+
+
+  if(
+    isListening
+  ){
+
+    return;
+
+  }
+
+
+  if(
+    !recognition
+  ){
+
+    recognition =
+      createRecognition();
+
+  }
+
+
+  if(
+    !recognition
+  ){
+
+    $("status").textContent =
+      "❌ Este navegador no soporta reconocimiento de voz.";
+
+    return;
+
+  }
+
+
+  isListening =
+    true;
+
+
+  /*
+    Una nueva sesión comienza
+    con buffers vacíos.
+  */
+
+  confirmedText =
+    "";
+
+
+  interimText =
+    "";
+
+
+  lastProcessedText =
+    "";
+
+
+  $("result").innerHTML =
+    "Esperando tu compra...";
+
+
+  $("transcript").textContent =
+    "Escuchando...";
+
+
+  try{
+
+    recognition.start();
+
+  }
+
+  catch(error){
+
+    debug(
+      "START ERROR: " +
+      error.message
+    );
+
+  }
+
+}
+
+
+
+/* ==========================================
+   DETENER
+========================================== */
+
+
+function stopListening(){
+
+
+  isListening =
+    false;
+
+
+  clearTimeout(
+    restartTimer
+  );
+
+
+  clearTimeout(
+    silenceTimer
+  );
+
+
+  if(
+    recognition
+  ){
+
+    try{
+
+      recognition.stop();
+
+    }
+
+    catch(error){
+
+      debug(
+        "STOP ERROR: " +
+        error.message
+      );
+
+    }
+
+  }
+
+
+  $("mic")
+    .classList
+    .remove(
+      "listening"
+    );
+
+
+  $("mic").textContent =
+    "🎙️";
+
+
+  $("status").textContent =
+    "⏹️ Detenido";
+
+}
+
+
+
+/* ==========================================
+   BOTÓN MICRÓFONO
+========================================== */
+
+
+function toggleMicrophone(){
+
+  if(
+    isListening
+  ){
+
+    stopListening();
+
+  }
+
+  else{
+
+    startListening();
+
+  }
+
+}
+
+
+
+/* ==========================================
+   PROCESAMIENTO AUTOMÁTICO
+========================================== */
+
+
+async function processAutomatically(){
+
+
+  if(
+    processing
+  ){
+
+    return;
+
+  }
+
+
+  const text =
+    getFullText();
+
+
+  if(!text){
+
+    return;
+
+  }
+
+
+  if(
+    comparable(text) ===
+    comparable(lastProcessedText)
+  ){
+
+    return;
+
+  }
+
+
+  processing =
+    true;
+
+
+  /*
+    Guardamos inmediatamente
+    para impedir dobles llamadas.
+  */
+
+  lastProcessedText =
+    text;
+
+
+  $("status").textContent =
+    "🧠 Entendiendo automáticamente...";
+
+
+  debug(
+    "PROCESANDO: " +
+    text
+  );
+
+
+  try{
+
+
+    /*
+      Usamos exactamente
+      el servidor que ya tienes
+      funcionando en Render.
+
+      La API key sigue protegida.
+    */
+
+
+    const response =
+      await fetch(
+        "/api/parse-shopping",
+        {
+
+          method:
+            "POST",
+
+          headers:{
+
+            "Content-Type":
+              "application/json"
+
+          },
+
+          body:
+            JSON.stringify(
+              {
+
+                transcript:
+                  text,
+
+                rate:
+                  777.42,
+
+                defaultStore:
+                  "GENERAL"
+
+              }
+            )
+
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    debug(
+      "Servidor HTTP " +
+      response.status
+    );
+
+
+    if(
+      !response.ok
+    ){
+
+      throw new Error(
+
+        data.error ||
+        "Error interpretando compra"
+
+      );
+
+    }
+
+
+    renderResult(
+      data
+    );
+
+
+    $("status").textContent =
+      "✅ Entendido. Puedes seguir hablando.";
+
+
+    /*
+      IMPORTANTE:
+
+      Después de procesar
+      limpiamos el buffer.
+
+      Así puedes continuar:
+
+      "queso 150 bolos"
+
+      pausa
+
+      luego:
+
+      "leche dos dólares"
+
+      sin duplicar lo anterior.
+    */
+
+
+    confirmedText =
+      "";
+
+
+    interimText =
+      "";
+
+
+    updateTranscript();
+
+
+  }
+
+
+  catch(error){
+
+
+    console.error(
+      error
+    );
+
+
+    $("status").textContent =
+      "❌ No pude interpretar. Puedes repetirlo.";
+
+
+    $("result").innerHTML =
+      '<div class="error">' +
+      escapeHTML(
+        error.message
+      ) +
+      '</div>';
+
+
+    /*
+      Si falla NO borramos
+      lo hablado.
+
+      Puede volver a intentarse.
+    */
+
+    lastProcessedText =
+      "";
+
+  }
+
+
+  finally{
+
+    processing =
+      false;
+
+  }
+
+}
+
+
+
+/* ==========================================
+   RESULTADO
+========================================== */
+
+
+function renderResult(data){
+
+
+  let html =
+    '<div class="result-local">' +
+    '🏪 ' +
+    escapeHTML(
+      data.local ||
+      "GENERAL"
+    ) +
+    '</div>';
+
+
+  if(
+    !Array.isArray(
+      data.products
+    ) ||
+    !data.products.length
+  ){
+
+    html +=
+      '<div class="error">' +
+      'No encontré productos con precio.' +
+      '</div>';
+
+
+    $("result").innerHTML =
+      html;
+
+
+    return;
+
+  }
+
+
+  data.products.forEach(
+    function(product){
+
+
+      const quantity =
+        Math.max(
+          1,
+          Number(
+            product.cantidad ||
+            1
+          )
+        );
+
+
+      const price =
+        Number(
+          product.precio
+        );
+
+
+      html +=
+
+        '<div class="product">' +
+
+          '<div class="product-name">' +
+
+            '🛒 ' +
+
+            escapeHTML(
+              product.nombre
+            ) +
+
+          '</div>' +
+
+
+          '<div class="quantity">' +
+
+            'Cantidad: ' +
+            quantity +
+
+          '</div>' +
+
+
+          '<div class="price">' +
+
+            (
+              product.moneda ===
+              "USD"
+
+                ? "$" +
+                  price.toFixed(2)
+
+                : price.toFixed(2) +
+                  " Bs"
+            ) +
+
+          '</div>' +
+
+
+          '<div class="badge">' +
+
+            '✓ Detectado automáticamente' +
+
+          '</div>' +
+
+        '</div>';
+
+    }
+  );
+
+
+  $("result").innerHTML =
+    html;
+
+}
+
+
+
+/* ==========================================
+   LIMPIAR
+========================================== */
+
+
+function clearEverything(){
+
+
+  confirmedText =
+    "";
+
+
+  interimText =
+    "";
+
+
+  lastProcessedText =
+    "";
+
+
+  clearTimeout(
+    silenceTimer
+  );
+
+
+  $("transcript").textContent =
+    isListening
+      ? "Escuchando..."
+      : "Aquí aparecerá lo que digas...";
+
+
+  $("result").innerHTML =
+    "Todavía no hay productos.";
+
+
+  debug(
+    "Limpieza manual"
+  );
+
+}
+
+
+
+/* ==========================================
+   SEGURIDAD HTML
+========================================== */
+
+
+function escapeHTML(text){
+
+  return String(
+    text ?? ""
+  )
+
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+
+    .replace(
+      /</g,
+      "&lt;"
+    )
+
+    .replace(
+      />/g,
+      "&gt;"
+    )
+
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
+
+</script>
+
+</body>
+</html>
