@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1,viewport-fit=cover"
+>
+
+<title>Mercado Manu - Laboratorio de Voz</title>
+
+<style>
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  padding:18px;
+  background:#eef2fa;
+  color:#11142b;
+  font-family:Arial,sans-serif;
+}
+
+.wrap{
+  max-width:600px;
+  margin:auto;
+}
+
+.card{
+  background:white;
+  border-radius:22px;
+  padding:18px;
+  margin-bottom:15px;
+  box-shadow:0 6px 24px rgba(0,0,0,.08);
+}
+
+h1{
+  margin:0 0 8px;
+  font-size:24px;
+}
+
+.desc{
+  color:#62627c;
+  line-height:1.45;
+  font-size:14px;
+}
+
+.status{
+  margin-top:14px;
+  padding:12px;
+  border-radius:14px;
+  background:#eef8ff;
+  font-weight:bold;
+  color:#0077aa;
+}
+
+textarea{
+  width:100%;
+  min-height:145px;
+  margin-top:12px;
+  padding:14px;
+  border-radius:15px;
+  border:2px solid #d7d9e2;
+  resize:vertical;
+  font-size:16px;
+  line-height:1.45;
+  color:#11142b;
+  background:#fafafa;
+}
+
+.buttons{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:12px;
+}
+
+button{
+  min-height:54px;
+  border:none;
+  border-radius:15px;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+#listenBtn{
+  background:linear-gradient(135deg,#7209b7,#00b4d8);
+  color:white;
+}
+
+#stopBtn{
+  background:#f0f0f4;
+  color:#222;
+}
+
+#clearBtn{
+  background:#fff4e7;
+  color:#bf5700;
+}
+
+#processBtn{
+  background:linear-gradient(135deg,#06d6a0,#008e69);
+  color:white;
+}
+
+.debug{
+  font-family:monospace;
+  font-size:12px;
+  white-space:pre-wrap;
+  word-break:break-word;
+  background:#10101c;
+  color:#d8e7ff;
+  border-radius:14px;
+  padding:12px;
+  min-height:60px;
+}
+
+.result{
+  margin-top:10px;
+}
+
+.product{
+  border:1px solid #e0e2ea;
+  background:#f8f9fc;
+  border-radius:14px;
+  padding:13px;
+  margin-top:9px;
+}
+
+.local{
+  color:#0077aa;
+  font-weight:bold;
+  font-size:18px;
+}
+
+.product-name{
+  font-weight:900;
+  font-size:17px;
+}
+
+.price{
+  color:#00855a;
+  font-weight:bold;
+  margin-top:4px;
+}
+
+.qty{
+  color:#7209b7;
+  font-weight:bold;
+}
+
+.error{
+  color:#d00000;
+}
+
+.ok{
+  color:#00855a;
+}
+
+.small{
+  font-size:12px;
+  color:#696981;
+  margin-top:8px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+  <div class="card">
+
+    <h1>🎙️ Laboratorio de Voz</h1>
+
+    <p class="desc">
+      Esta pantalla sirve únicamente para mejorar el dictado
+      de Mercado Manu sin modificar todavía la aplicación principal.
+    </p>
+
+    <div id="status" class="status">
+      Micrófono detenido.
+    </div>
+
+    <textarea
+      id="transcript"
+      placeholder="Aquí aparecerá todo lo que vas diciendo..."
+    ></textarea>
+
+    <div class="buttons">
+
+      <button
+        id="listenBtn"
+        onclick="startListening()"
+      >
+        🎙️ Empezar
+      </button>
+
+      <button
+        id="stopBtn"
+        onclick="stopListening()"
+      >
+        ⏹️ Detener
+      </button>
+
+      <button
+        id="clearBtn"
+        onclick="clearTranscript()"
+      >
+        🧹 Limpiar
+      </button>
+
+      <button
+        id="processBtn"
+        onclick="processWithGemini()"
+      >
+        ✨ Procesar IA
+      </button>
+
+    </div>
+
+    <p class="small">
+      Puedes editar manualmente la transcripción antes de enviarla a Gemini.
+    </p>
+
+  </div>
+
+
+  <div class="card">
+
+    <b>Texto consolidado que enviaremos a Gemini</b>
+
+    <div
+      id="finalDebug"
+      class="debug"
+      style="margin-top:10px"
+    >
+      Vacío
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <b>Resultado de Gemini</b>
+
+    <div
+      id="result"
+      class="result"
+    >
+      Todavía no se ha procesado nada.
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <b>Registro técnico</b>
+
+    <div
+      id="log"
+      class="debug"
+      style="margin-top:10px"
+    >
+      Esperando prueba...
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+"use strict";
+
+
+let recognition = null;
+
+let isListening = false;
+
+let restartTimer = null;
+
+
+/*
+  Aquí guardamos solamente
+  frases que SpeechRecognition
+  ya marcó como definitivas.
+*/
+
+let confirmedSegments = [];
+
+
+/*
+  Texto provisional actual.
+  Cambia mientras hablas.
+*/
+
+let currentInterim = "";
+
+
+/* =========================================
+   UTILIDADES
+========================================= */
+
+
+function $(id){
+
+  return document.getElementById(id);
+
+}
+
+
+function log(message){
+
+  const time =
+    new Date()
+      .toLocaleTimeString();
+
+  $("log").textContent =
+    `[${time}] ${message}\n` +
+    $("log").textContent;
+
+}
+
+
+function normalizeText(text){
+
+  return String(text || "")
+    .replace(/\s+/g," ")
+    .replace(/\s+([,.])/g,"$1")
+    .trim();
+
+}
+
+
+/*
+  Compara dos textos ignorando
+  mayúsculas, signos y espacios.
+
+  Esto nos ayuda a detectar
+  repeticiones del navegador.
+*/
+
+function comparable(text){
+
+  return String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^\p{L}\p{N}]+/gu," ")
+    .replace(/\s+/g," ")
+    .trim();
+
+}
+
+
+/*
+  Evita guardar exactamente
+  la misma frase dos veces.
+*/
+
+function addConfirmedSegment(text){
+
+  text =
+    normalizeText(text);
+
+  if(!text){
+    return;
+  }
+
+  const newComparable =
+    comparable(text);
+
+
+  /*
+    Revisamos los últimos segmentos,
+    que son donde normalmente ocurre
+    la duplicación.
+  */
+
+  for(
+    let i =
+      Math.max(
+        0,
+        confirmedSegments.length - 4
+      );
+
+    i <
+      confirmedSegments.length;
+
+    i++
+  ){
+
+    const oldComparable =
+      comparable(
+        confirmedSegments[i]
+      );
+
+
+    if(
+      oldComparable ===
+      newComparable
+    ){
+
+      log(
+        "Duplicado descartado: " +
+        text
+      );
+
+      return;
+
+    }
+
+  }
+
+
+  confirmedSegments.push(
+    text
+  );
+
+
+  log(
+    "Final añadido: " +
+    text
+  );
+
+}
+
+
+/*
+  Construye la frase completa
+  que ve el usuario.
+*/
+
+function buildTranscript(){
+
+  const parts =
+    confirmedSegments.slice();
+
+
+  if(currentInterim){
+
+    const interimCompare =
+      comparable(
+        currentInterim
+      );
+
+
+    const alreadyPresent =
+      parts.some(
+        part => {
+
+          const pc =
+            comparable(part);
+
+          return (
+            pc === interimCompare ||
+            pc.includes(interimCompare) ||
+            interimCompare.includes(pc)
+          );
+
+        }
+      );
+
+
+    if(
+      !alreadyPresent
+    ){
+
+      parts.push(
+        currentInterim
+      );
+
+    }
+
+  }
+
+
+  return normalizeText(
+    parts.join(" ")
+  );
+
+}
+
+
+/*
+  Actualiza pantalla.
+*/
+
+function refreshTranscriptUI(){
+
+  const text =
+    buildTranscript();
+
+
+  $("transcript").value =
+    text;
+
+
+  $("finalDebug").textContent =
+    text || "Vacío";
+
+}
+
+
+/* =========================================
+   WEB SPEECH RECOGNITION
+========================================= */
+
+
+function createRecognition(){
+
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+
+  if(
+    !SpeechRecognition
+  ){
+
+    return null;
+
+  }
+
+
+  const sr =
+    new SpeechRecognition();
+
+
+  /*
+    Estas características vienen
+    de la versión antigua que
+    te funcionaba mejor.
+  */
+
+  sr.continuous =
+    true;
+
+
+  sr.interimResults =
+    true;
+
+
+  sr.lang =
+    "es-VE";
+
+
+  sr.maxAlternatives =
+    1;
+
+
+  sr.onstart =
+    function(){
+
+      log(
+        "Reconocimiento iniciado."
+      );
+
+
+      $("status").textContent =
+        "🎙️ Escuchando... habla con naturalidad.";
+
+    };
+
+
+  sr.onresult =
+    function(event){
+
+      let interim =
+        "";
+
+
+      for(
+        let i =
+          event.resultIndex;
+
+        i <
+          event.results.length;
+
+        i++
+      ){
+
+        const result =
+          event.results[i];
+
+
+        const text =
+          normalizeText(
+            result[0].transcript
+          );
+
+
+        if(!text){
+          continue;
+        }
+
+
+        if(
+          result.isFinal
+        ){
+
+          addConfirmedSegment(
+            text
+          );
+
+        }
+
+        else{
+
+          interim +=
+            " " + text;
+
+        }
+
+      }
+
+
+      currentInterim =
+        normalizeText(
+          interim
+        );
+
+
+      refreshTranscriptUI();
+
+    };
+
+
+  sr.onerror =
+    function(event){
+
+      log(
+        "ERROR voz: " +
+        event.error
+      );
+
+
+      /*
+        Un error network NO borra
+        lo que ya conseguimos.
+      */
+
+      if(
+        event.error ===
+        "network"
+      ){
+
+        $("status").innerHTML =
+          "⚠️ Error de red del reconocimiento.<br>" +
+          "Conservo lo que ya entendí e intentaré reconectar.";
+
+        return;
+
+      }
+
+
+      if(
+        event.error ===
+        "not-allowed" ||
+        event.error ===
+        "service-not-allowed"
+      ){
+
+        isListening =
+          false;
+
+
+        $("status").textContent =
+          "❌ Permiso de micrófono bloqueado.";
+
+        return;
+
+      }
+
+
+      if(
+        event.error ===
+        "no-speech"
+      ){
+
+        $("status").textContent =
+          "🎙️ No escuché voz. Sigo esperando...";
+
+      }
+
+    };
+
+
+  sr.onend =
+    function(){
+
+      log(
+        "Reconocimiento terminó."
+      );
+
+
+      /*
+        Conservamos provisional
+        antes del reinicio.
+      */
+
+      if(
+        currentInterim
+      ){
+
+        addConfirmedSegment(
+          currentInterim
+        );
+
+
+        currentInterim =
+          "";
+
+
+        refreshTranscriptUI();
+
+      }
+
+
+      /*
+        Esta lógica de reinicio
+        viene de la versión anterior.
+      */
+
+      if(
+        isListening
+      ){
+
+        clearTimeout(
+          restartTimer
+        );
+
+
+        restartTimer =
+          setTimeout(
+            function(){
+
+              if(
+                !isListening
+              ){
+                return;
+              }
+
+
+              try{
+
+                sr.start();
+
+
+                log(
+                  "Reinicio automático."
+                );
+
+              }
+
+              catch(error){
+
+                log(
+                  "No se pudo reiniciar: " +
+                  error.message
+                );
+
+              }
+
+            },
+            450
+          );
+
+      }
+
+      else{
+
+        $("status").textContent =
+          "⏹️ Micrófono detenido.";
+
+      }
+
+    };
+
+
+  return sr;
+
+}
+
+
+/* =========================================
+   START
+========================================= */
+
+
+function startListening(){
+
+  if(
+    isListening
+  ){
+
+    return;
+
+  }
+
+
+  if(
+    !recognition
+  ){
+
+    recognition =
+      createRecognition();
+
+  }
+
+
+  if(
+    !recognition
+  ){
+
+    $("status").textContent =
+      "❌ Este navegador no ofrece Web Speech Recognition.";
+
+    return;
+
+  }
+
+
+  isListening =
+    true;
+
+
+  $("status").textContent =
+    "🎙️ Iniciando micrófono...";
+
+
+  try{
+
+    recognition.start();
+
+  }
+
+  catch(error){
+
+    log(
+      "start(): " +
+      error.message
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   STOP
+========================================= */
+
+
+function stopListening(){
+
+  isListening =
+    false;
+
+
+  clearTimeout(
+    restartTimer
+  );
+
+
+  if(
+    currentInterim
+  ){
+
+    addConfirmedSegment(
+      currentInterim
+    );
+
+
+    currentInterim =
+      "";
+
+  }
+
+
+  refreshTranscriptUI();
+
+
+  if(
+    recognition
+  ){
+
+    try{
+
+      recognition.stop();
+
+    }
+
+    catch(error){
+
+      log(
+        "stop(): " +
+        error.message
+      );
+
+    }
+
+  }
+
+
+  $("status").textContent =
+    "⏹️ Micrófono detenido.";
+
+}
+
+
+/* =========================================
+   LIMPIAR
+========================================= */
+
+
+function clearTranscript(){
+
+  confirmedSegments =
+    [];
+
+
+  currentInterim =
+    "";
+
+
+  $("transcript").value =
+    "";
+
+
+  $("finalDebug").textContent =
+    "Vacío";
+
+
+  $("result").innerHTML =
+    "Todavía no se ha procesado nada.";
+
+
+  log(
+    "Transcripción limpiada."
+  );
+
+}
+
+
+/* =========================================
+   PERMITIR EDICIÓN MANUAL
+========================================= */
+
+
+$("transcript")
+  .addEventListener(
+    "input",
+    function(){
+
+      /*
+        Si editas manualmente,
+        la versión visible es
+        la que enviaremos a Gemini.
+      */
+
+      $("finalDebug").textContent =
+        normalizeText(
+          this.value
+        ) ||
+        "Vacío";
+
+    }
+  );
+
+
+/* =========================================
+   GEMINI
+========================================= */
+
+
+async function processWithGemini(){
+
+  /*
+    Antes de procesar,
+    detenemos voz para que
+    el texto no cambie.
+  */
+
+  stopListening();
+
+
+  const transcript =
+    normalizeText(
+      $("transcript").value
+    );
+
+
+  if(!transcript){
+
+    $("result").innerHTML =
+      '<span class="error">No hay nada para procesar.</span>';
+
+    return;
+
+  }
+
+
+  $("finalDebug").textContent =
+    transcript;
+
+
+  $("result").innerHTML =
+    "🤖 Gemini está interpretando...";
+
+
+  $("processBtn").disabled =
+    true;
+
+
+  try{
+
+
+    const response =
+      await fetch(
+        "/api/parse-shopping",
+        {
+
+          method:
+            "POST",
+
+          headers:{
+
+            "Content-Type":
+              "application/json"
+
+          },
+
+          body:
+            JSON.stringify(
+              {
+
+                transcript,
+
+                rate: 777.42,
+
+                defaultStore:
+                  "GENERAL"
+
+              }
+            )
+
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    log(
+      "HTTP Gemini: " +
+      response.status
+    );
+
+
+    if(
+      !response.ok
+    ){
+
+      throw new Error(
+        data.error ||
+        "Error del servidor"
+      );
+
+    }
+
+
+    renderGeminiResult(
+      data
+    );
+
+  }
+
+  catch(error){
+
+    console.error(
+      error
+    );
+
+
+    $("result").innerHTML =
+      '<span class="error">❌ ' +
+      escapeHTML(
+        error.message
+      ) +
+      '</span>';
+
+
+    log(
+      "ERROR Gemini: " +
+      error.message
+    );
+
+  }
+
+  finally{
+
+    $("processBtn").disabled =
+      false;
+
+  }
+
+}
+
+
+/* =========================================
+   MOSTRAR RESULTADO
+========================================= */
+
+
+function renderGeminiResult(data){
+
+  let html =
+    '<div class="local">🏪 ' +
+    escapeHTML(
+      data.local ||
+      "GENERAL"
+    ) +
+    '</div>';
+
+
+  if(
+    !Array.isArray(
+      data.products
+    ) ||
+    !data.products.length
+  ){
+
+    html +=
+      '<p class="error">No se detectaron productos.</p>';
+
+    $("result").innerHTML =
+      html;
+
+    return;
+
+  }
+
+
+  data.products.forEach(
+    product => {
+
+
+      html +=
+        '<div class="product">' +
+
+          '<div class="product-name">' +
+            '🛒 ' +
+            escapeHTML(
+              product.nombre
+            ) +
+          '</div>' +
+
+          '<div class="qty">' +
+            'Cantidad: ' +
+            Number(
+              product.cantidad ||
+              1
+            ) +
+          '</div>' +
+
+          '<div class="price">' +
+            'Precio: ' +
+            Number(
+              product.precio
+            ) +
+            ' ' +
+            escapeHTML(
+              product.moneda
+            ) +
+          '</div>' +
+
+          '<div class="small">' +
+            'Tipo: ' +
+            escapeHTML(
+              product.tipoPrecio ||
+              "UNITARIO"
+            ) +
+          '</div>' +
+
+        '</div>';
+
+    }
+  );
+
+
+  $("result").innerHTML =
+    html;
+
+
+  log(
+    "Gemini devolvió " +
+    data.products.length +
+    " producto(s)."
+  );
+
+}
+
+
+/* =========================================
+   ESCAPE
+========================================= */
+
+
+function escapeHTML(text){
+
+  return String(
+    text ?? ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
+
+</script>
+
+</body>
+</html>
