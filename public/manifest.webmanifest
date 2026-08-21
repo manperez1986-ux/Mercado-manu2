@@ -1,0 +1,20 @@
+{
+  "name": "Mercado Manu",
+  "short_name": "MercadoManu",
+  "description": "Asistente de compras con voz e IA",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0a15",
+  "theme_color": "#e8edf8",
+  "lang": "es-VE",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

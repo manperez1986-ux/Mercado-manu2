@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#e8edf8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MercadoManu">
+  <title>Mercado Manu</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <style>
+    :root{
+      --bg:#0a0a15;--card:#161628;--a1:#ff6b35;--a2:#ffd23f;--a3:#06d6a0;
+      --a5:#00b4d8;--a6:#7209b7;--text:#fff;--sub:#aaaacc;--border:rgba(255,255,255,.1);
+      --foot-bg:rgba(10,10,21,.97);--nav-bg:rgba(10,10,21,.97);--inp-bg:rgba(255,255,255,.08);
+      --inp-border:rgba(255,255,255,.15);--card-shine:rgba(255,255,255,.05)
+    }
+    body.light{
+      --bg:#e8edf8;--card:#fff;--a1:#d13800;--a2:#9a6c00;--a3:#00855a;--a5:#0077aa;--a6:#5e17eb;
+      --text:#0b0b23;--sub:#4a4a75;--border:rgba(0,0,0,.14);--foot-bg:rgba(232,237,248,.98);
+      --nav-bg:rgba(232,237,248,.98);--inp-bg:rgba(0,0,0,.06);--inp-border:rgba(0,0,0,.16);
+      --card-shine:rgba(0,180,216,.04)
+    }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html{height:100%} body{min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:12px 12px 176px;transition:.25s;overscroll-behavior-y:none}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 20% 20%,rgba(255,107,53,.12),transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(6,214,160,.1),transparent 50%)}
+    button,input{font:inherit}.card{background:linear-gradient(135deg,var(--card-shine),transparent 60%),var(--card);border:1px solid var(--border);border-radius:22px;margin-bottom:14px;position:relative;z-index:1;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+    .hdr{padding:18px 16px 24px;border-radius:21px 21px 0 0;background:linear-gradient(135deg,#ff6b35,#ffd23f,#ff6b35);text-align:center;color:white;overflow:hidden;position:relative}
+    .toprow{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:14px}
+    .pill{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.25);border-radius:20px;color:white;padding:7px 11px;font-weight:900}
+    .rate{width:65px;background:transparent;color:white;border:0;outline:0;text-align:center;font-weight:900}
+    .balance{font-size:clamp(2.2rem,12vw,4rem);font-weight:950}.equiv{display:inline-block;margin-top:4px;padding:5px 16px;background:rgba(0,0,0,.22);border-radius:20px;font-weight:800;font-size:13px}
+    .pad{padding:14px}.inp{width:100%;border:1.5px solid var(--inp-border);border-radius:14px;background:var(--inp-bg);color:var(--text);padding:13px 14px;outline:0;font-weight:800}.inp:focus{border-color:var(--a5)}
+    .btn{border:0;border-radius:16px;color:white;font-weight:900;padding:14px 16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}.btn:active{transform:scale(.97)}
+    .blue{background:linear-gradient(135deg,#00c8f0,#0066cc)}.green{background:linear-gradient(135deg,#06d6a0,#00956e)}.orange{background:linear-gradient(135deg,#ff6b35,#e05000)}.ai{background:linear-gradient(135deg,#7209b7,#3a0ca3,#00b4d8)}
+    .sub{font-size:11px;font-weight:900;color:var(--sub);text-transform:uppercase}.row{display:flex;gap:8px}.row>*{flex:1}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .item{padding:13px}.item-top{display:flex;justify-content:space-between;gap:10px}.item-name{font-weight:950;font-size:15px}.item-meta{font-size:11px;color:var(--sub);margin-top:3px}.item-price{text-align:right}.qty{font-weight:950;color:var(--a5)}
+    .item-total{display:flex;justify-content:space-between;border-top:1px solid var(--border);margin-top:9px;padding-top:9px;font-size:12px;font-weight:900}.mini{border:1px solid var(--border);background:var(--inp-bg);color:var(--text);border-radius:10px;padding:6px 9px;font-weight:900;cursor:pointer}
+    .tab{display:none}.tab.on{display:block}.title{font-size:26px;font-weight:950;margin:5px 0 18px}.plan-item,.hist-item{padding:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .foot{position:fixed;left:0;right:0;bottom:82px;z-index:90;background:var(--foot-bg);backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:11px 15px;display:flex;justify-content:space-between;align-items:center}
+    .nav{position:fixed;left:0;right:0;bottom:0;height:82px;z-index:100;background:var(--nav-bg);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px 0 24px}.nav button{background:none;border:0;color:var(--sub);font-weight:900}.nav button.on{color:var(--a5)}
+    .fab{position:fixed;right:16px;bottom:150px;z-index:95;width:58px;height:58px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:linear-gradient(135deg,#7209b7,#00b4d8);color:white;font-size:24px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+    .modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(10,10,21,.86);backdrop-filter:blur(12px);padding:16px;align-items:flex-end}.sheet{width:100%;max-width:500px;margin:auto;background:var(--card);border:1px solid var(--border);border-radius:28px;padding:18px;max-height:88vh;overflow:auto}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.close{background:none;border:0;color:var(--sub);font-size:22px}.voice-text{background:var(--inp-bg);border:1px solid var(--border);border-radius:16px;padding:14px;min-height:78px;margin:12px 0;font-weight:800;line-height:1.45}
+    .toast{display:none;position:fixed;top:max(16px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:99999;max-width:92%;padding:11px 18px;border-radius:18px;background:linear-gradient(135deg,#06d6a0,#0077b6);color:white;font-weight:900;text-align:center}
+    .offline{display:none;position:fixed;top:10px;right:10px;z-index:9998;background:#ff6b35;color:white;border-radius:999px;padding:6px 10px;font-size:10px;font-weight:900}body.offline .offline{display:block}
+    .muted{background:var(--inp-bg);color:var(--text);border:1px solid var(--border)}.danger{color:#ff453a}.loading{opacity:.65;pointer-events:none}
+    .scan-preview{min-height:170px;border:2px dashed var(--inp-border);border-radius:18px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.scan-preview input{position:absolute;inset:0;opacity:0;width:100%;height:100%}.scan-preview img{display:none;max-width:100%;max-height:220px}
+    .ai-box{background:var(--inp-bg);border:1px solid var(--border);border-radius:16px;padding:12px;min-height:120px;max-height:320px;overflow:auto;white-space:pre-wrap;line-height:1.45}
+    @media(min-width:700px){body{max-width:620px;margin:auto}.foot,.nav{max-width:620px;left:50%;transform:translateX(-50%)}}
+  </style>
+</head>
+<body class="light">
+  <div id="toast" class="toast"></div><div class="offline">📴 OFFLINE</div>
+  <button class="fab" onclick="toggleVoiceAssistant()" aria-label="Dictar compra">🎙️</button>
+
+  <section id="secCalc" class="tab on">
+    <div class="card">
+      <div class="hdr">
+        <div class="toprow">
+          <div class="pill">BCV <input id="tasa" class="rate" value="36,50" inputmode="decimal" oninput="calc();saveState()"></div>
+          <button class="pill" onclick="toggleMode()" id="modeBtn">🌙</button>
+          <button class="pill" onclick="confirmClear()">🗑️ Vaciar</button>
+        </div>
+        <div id="ds" class="balance">0,00</div>
+        <div id="de" class="equiv">0,00 Bs</div>
+      </div>
+      <div class="pad">
+        <div class="row" style="margin-bottom:12px">
+          <button id="bU" class="btn orange" onclick="setCurrency('USD')">💵 Dólares</button>
+          <button id="bB" class="btn muted" onclick="setCurrency('BS')">🇻🇪 Bolívares</button>
+        </div>
+        <input id="presu" class="inp" inputmode="decimal" placeholder="PRESUPUESTO..." style="text-align:center;font-size:26px" oninput="calc();saveState()">
+      </div>
+    </div>
+
+    <div class="card pad">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span class="sub">Agregar manual / IA</span>
+        <div class="row" style="flex:0 0 auto">
+          <button class="mini" onclick="openScan()">📷 Escanear</button>
+          <button class="mini" onclick="toggleVoiceAssistant()">🎙️ Dictar</button>
+        </div>
+      </div>
+      <input id="loc" class="inp" placeholder="🏪 ¿DÓNDE COMPRAS?" style="margin-bottom:9px">
+      <input id="prod" class="inp" placeholder="🔍 PRODUCTO..." style="margin-bottom:9px">
+      <div class="grid2" style="margin-bottom:10px">
+        <input id="iU" class="inp" inputmode="decimal" placeholder="$ 0.00">
+        <input id="iB" class="inp" inputmode="decimal" placeholder="Bs 0.00">
+      </div>
+      <button class="btn blue" style="width:100%" onclick="addManual()">➕ Agregar al carrito</button>
+    </div>
+    <div id="lista"></div>
+  </section>
+
+  <section id="secPlan" class="tab">
+    <h1 class="title" style="color:var(--a1)">📝 Faltantes</h1>
+    <div class="card pad">
+      <input id="iP" class="inp" placeholder="¿QUÉ NECESITAS COMPRAR?" style="margin-bottom:10px">
+      <button class="btn orange" style="width:100%" onclick="addPlan()">✍️ Anotar</button>
+    </div>
+    <div id="listaPlan"></div>
+  </section>
+
+  <section id="secHist" class="tab">
+    <h1 class="title" style="color:var(--a5)">📜 Historial</h1>
+    <div id="listaHist"></div>
+  </section>
+
+  <div class="foot">
+    <div><div class="sub">Gasto total</div><div id="tG" style="font-size:21px;font-weight:950;color:var(--a3)">0,00 Bs</div><div id="tU" style="font-size:12px;font-weight:850;color:var(--a1)">0,00 $</div></div>
+    <button class="btn green" onclick="closePurchase()">✅ Cerrar compra</button>
+  </div>
+  <nav class="nav">
+    <button id="tCalc" class="on" onclick="showTab('Calc')">🛒 Mercado</button>
+    <button id="tPlan" onclick="showTab('Plan')">📝 Lista</button>
+    <button id="tHist" onclick="showTab('Hist')">📜 Historial</button>
+  </nav>
+
+  <div id="voiceModal" class="modal">
+    <div class="sheet">
+      <div class="modal-head"><b style="color:var(--a6)">✨ Dictado inteligente</b><button class="close" onclick="stopVoiceAssistant()">✕</button></div>
+      <div id="voiceStatus" class="sub" style="color:var(--a5)">🎙️ Escuchando...</div>
+      <div id="voiceText" class="voice-text">Puedes decir: “En Forum, dos harinas PAN a dólar veinte cada una, queso 150 bolos y tres refrescos a dos con cincuenta”.</div>
+      <div class="row">
+        <button class="btn muted" onclick="clearVoiceBuffer()">Limpiar</button>
+        <button id="voiceApply" class="btn green" onclick="applyVoiceResultsNow()">✨ Procesar con IA</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="scanModal" class="modal">
+    <div class="sheet">
+      <div class="modal-head"><b style="color:var(--a5)">📷 Escáner de factura</b><button class="close" onclick="closeScan()">✕</button></div>
+      <div class="scan-preview">
+        <input type="file" id="scanInput" accept="image/*" capture="environment" onchange="previewReceipt(event)">
+        <div id="scanPlaceholder" style="text-align:center"><div style="font-size:42px">📷</div><b>Toca para tomar una foto</b></div>
+        <img id="scanImage">
+      </div>
+      <div id="scanStatus" style="margin:10px 0;font-size:12px;color:var(--sub)"></div>
+      <button id="scanProcess" class="btn blue" style="width:100%;display:none" onclick="processReceipt()">✨ Analizar factura</button>
+    </div>
+  </div>
+
+  <div id="aiModal" class="modal">
+    <div class="sheet">
+      <div class="modal-head"><b style="color:var(--a6)">✨ Asistente de compras</b><button class="close" onclick="closeAI()">✕</button></div>
+      <div id="aiBox" class="ai-box">Pregúntame por ahorro, ideas de menú o cómo aprovechar lo que llevas en el carrito.</div>
+      <div class="row" style="margin-top:10px">
+        <input id="aiInput" class="inp" placeholder="Pregunta..." onkeydown="if(event.key==='Enter')askAI()">
+        <button class="btn ai" style="flex:0 0 auto" onclick="askAI()">Enviar</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+let carrito = [];
+let mon = "USD";
+let plan = [];
+let history = [];
+let recognition = null;
+let isListening = false;
+let isApplyingVoice = false;
+let voiceFinalBuffer = "";
+let voiceLastInterim = "";
+let receiptDataUrl = "";
+
+function parseNum(v){ return Number(String(v ?? "").replace(/\./g,"").replace(",",".")) || 0; }
+function fm(n){ return Number(n || 0).toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function uid(){ return Date.now() + Math.floor(Math.random()*100000); }
+function toast(msg){ const e=$("toast");e.textContent=msg;e.style.display="block";clearTimeout(window.__tt);window.__tt=setTimeout(()=>e.style.display="none",3500); }
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m])); }
+
+function loadState(){
+  try{ carrito=JSON.parse(localStorage.getItem("mm_cart")||"[]"); }catch{}
+  try{ plan=JSON.parse(localStorage.getItem("mm_plan")||"[]"); }catch{}
+  try{ history=JSON.parse(localStorage.getItem("mm_history")||"[]"); }catch{}
+  mon=localStorage.getItem("mm_currency")||"USD";
+  $("presu").value=localStorage.getItem("mm_budget")||"";
+  $("tasa").value=localStorage.getItem("mm_rate")||"36,50";
+  $("loc").value=localStorage.getItem("mm_store")||"";
+  const dark=localStorage.getItem("mm_dark")==="true";
+  document.body.classList.toggle("light",!dark);
+  updateModeButton(); setCurrency(mon); renderPlan(); renderHistory(); calc();
+}
+function saveState(){
+  localStorage.setItem("mm_cart",JSON.stringify(carrito));
+  localStorage.setItem("mm_plan",JSON.stringify(plan));
+  localStorage.setItem("mm_history",JSON.stringify(history));
+  localStorage.setItem("mm_currency",mon);
+  localStorage.setItem("mm_budget",$("presu").value);
+  localStorage.setItem("mm_rate",$("tasa").value);
+  localStorage.setItem("mm_store",$("loc").value);
+}
+function setCurrency(m){
+  mon=m;
+  $("bU").className="btn "+(m==="USD"?"orange":"muted");
+  $("bB").className="btn "+(m==="BS"?"green":"muted");
+  saveState();calc();
+}
+function toggleMode(){
+  document.body.classList.toggle("light");
+  localStorage.setItem("mm_dark", String(!document.body.classList.contains("light")));
+  updateModeButton();
+}
+function updateModeButton(){ $("modeBtn").textContent=document.body.classList.contains("light")?"🌙":"☀️"; }
+
+function addManual(){
+  const nombre=$("prod").value.trim().toUpperCase();
+  const local=($("loc").value.trim()||"GENERAL").toUpperCase();
+  const rate=parseNum($("tasa").value)||1;
+  const rawU=$("iU").value.trim(), rawB=$("iB").value.trim();
+  if(!nombre || (!rawU && !rawB)){ toast("Falta producto o precio."); return; }
+  const uUSD=rawU?parseNum(rawU):parseNum(rawB)/rate;
+  const uBS=rawB?parseNum(rawB):parseNum(rawU)*rate;
+  carrito.push({id:uid(),nombre,local,cant:1,uUSD,uBS,tUSD:uUSD,tBS:uBS});
+  $("prod").value=$("iU").value=$("iB").value="";
+  saveState();calc();
+}
+function changeQty(id, delta){
+  const item=carrito.find(x=>x.id===id); if(!item)return;
+  item.cant=Math.max(1,Number(item.cant||1)+delta);
+  item.tUSD=item.uUSD*item.cant; item.tBS=item.uBS*item.cant;
+  saveState();calc();
+}
+function removeItem(id){ carrito=carrito.filter(x=>x.id!==id);saveState();calc(); }
+function calc(){
+  const rate=parseNum($("tasa").value)||1;
+  const budget=parseNum($("presu").value);
+  let tU=0,tB=0,html="";
+  carrito.forEach(i=>{
+    i.cant=Number(i.cant||1);
+    i.uUSD=Number(i.uUSD||0); i.uBS=Number(i.uBS||i.uUSD*rate);
+    i.tUSD=i.uUSD*i.cant; i.tBS=i.uBS*i.cant;
+    tU+=i.tUSD;tB+=i.tBS;
+    html+=`<div class="card item">
+      <div class="item-top">
+        <div><div class="item-name">${esc(i.nombre)}</div><div class="item-meta">🏪 ${esc(i.local)}</div></div>
+        <div class="item-price"><div class="qty">× ${i.cant}</div><div class="item-meta">$${fm(i.uUSD)} · ${fm(i.uBS)} Bs c/u</div></div>
+      </div>
+      <div class="item-total"><span>$${fm(i.tUSD)} · ${fm(i.tBS)} Bs</span>
+        <span><button class="mini" onclick="changeQty(${i.id},-1)">−</button> <button class="mini" onclick="changeQty(${i.id},1)">+</button> <button class="mini danger" onclick="removeItem(${i.id})">✕</button></span>
+      </div>
+    </div>`;
+  });
+  $("lista").innerHTML=html;
+  const budgetUSD=mon==="USD"?budget:budget/rate;
+  const remainUSD=budgetUSD-tU;
+  $("ds").textContent=mon==="USD"?fm(remainUSD):fm(remainUSD*rate);
+  $("de").textContent=mon==="USD"?`${fm(remainUSD*rate)} Bs`:`${fm(remainUSD)} $`;
+  $("tG").textContent=`${fm(tB)} Bs`; $("tU").textContent=`${fm(tU)} $`;
+}
+function confirmClear(){ if(!carrito.length)return; if(confirm("¿Vaciar todo el carrito?")){carrito=[];saveState();calc();} }
+function closePurchase(){
+  if(!carrito.length){toast("El carrito está vacío.");return;}
+  const totalUSD=carrito.reduce((a,b)=>a+b.tUSD,0), totalBS=carrito.reduce((a,b)=>a+b.tBS,0);
+  history.unshift({id:uid(),date:new Date().toISOString(),items:structuredClone(carrito),totalUSD,totalBS,rate:parseNum($("tasa").value),store:$("loc").value||"GENERAL"});
+  carrito=[];saveState();calc();renderHistory();toast("✅ Compra guardada en historial.");
+}
+
+function addPlan(){
+  const text=$("iP").value.trim().toUpperCase();if(!text)return;
+  plan.push({id:uid(),text,done:false});$("iP").value="";saveState();renderPlan();
+}
+function togglePlan(id){const x=plan.find(v=>v.id===id);if(x)x.done=!x.done;saveState();renderPlan();}
+function delPlan(id){plan=plan.filter(x=>x.id!==id);saveState();renderPlan();}
+function renderPlan(){
+  $("listaPlan").innerHTML=plan.map(x=>`<div class="card plan-item"><span style="${x.done?"text-decoration:line-through;opacity:.6":""}" onclick="togglePlan(${x.id})">${x.done?"✅":"⬜"} ${esc(x.text)}</span><button class="mini danger" onclick="delPlan(${x.id})">✕</button></div>`).join("");
+}
+function renderHistory(){
+  $("listaHist").innerHTML=history.length?history.map(h=>{
+    const d=new Date(h.date).toLocaleString("es-VE");
+    return `<div class="card pad"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(h.store)}</b><span class="item-meta">${esc(d)}</span></div><div style="margin-top:7px;font-weight:900">${fm(h.totalUSD)} $ · ${fm(h.totalBS)} Bs</div><div class="item-meta">${h.items.length} línea(s) de producto</div></div>`;
+  }).join(""):`<div class="card pad">Todavía no hay compras guardadas.</div>`;
+}
+function showTab(name){
+  ["Calc","Plan","Hist"].forEach(x=>{$("sec"+x).classList.toggle("on",x===name);$("t"+x).classList.toggle("on",x===name);});
+}
+
+function normalizeSpeechText(text){
+  return String(text||"").replace(/\s+/g," ").replace(/\s+([,.])/g,"$1").trim();
+}
+function mergeFinalAndInterim(finalText, interimText){
+  const a=normalizeSpeechText(finalText),b=normalizeSpeechText(interimText);
+  if(!a)return b;if(!b)return a;
+  const al=a.toLowerCase(),bl=b.toLowerCase();
+  if(al.includes(bl))return a;if(bl.includes(al))return b;
+  const aw=a.split(/\s+/),bw=b.split(/\s+/);
+  for(let n=Math.min(aw.length,bw.length);n>0;n--){
+    if(aw.slice(-n).join(" ").toLowerCase()===bw.slice(0,n).join(" ").toLowerCase())
+      return normalizeSpeechText(a+" "+bw.slice(n).join(" "));
+  }
+  return normalizeSpeechText(a+" "+b);
+}
+function initSpeechRecognition(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return null;
+  const sr=new SR();sr.continuous=true;sr.interimResults=true;sr.lang="es-VE";
+  sr.onresult=e=>{
+    let finalPart="",interimPart="";
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const txt=e.results[i][0].transcript.trim();
+      if(e.results[i].isFinal)finalPart+=" "+txt;else interimPart+=" "+txt;
+    }
+    if(finalPart.trim())voiceFinalBuffer=mergeFinalAndInterim(voiceFinalBuffer,finalPart);
+    voiceLastInterim=normalizeSpeechText(interimPart);
+    $("voiceText").textContent="“"+mergeFinalAndInterim(voiceFinalBuffer,voiceLastInterim)+"”";
+  };
+  sr.onerror=e=>{ if(e.error!=="aborted") toast("🎙️ Micrófono: "+e.error); };
+  sr.onend=()=>{ if(isListening&&!isApplyingVoice){ try{sr.start();}catch{} } };
+  return sr;
+}
+function toggleVoiceAssistant(){ isListening?stopVoiceAssistant():startVoiceAssistant(); }
+function startVoiceAssistant(){
+  if(!recognition)recognition=initSpeechRecognition();
+  if(!recognition){toast("Este navegador no soporta reconocimiento de voz. Usa Chrome en Android.");return;}
+  voiceFinalBuffer="";voiceLastInterim="";isListening=true;
+  $("voiceModal").style.display="flex";$("voiceText").textContent="🎙️ Habla con naturalidad...";
+  try{recognition.start();}catch{}
+}
+function stopVoiceAssistant(){isListening=false;if(recognition){try{recognition.abort();}catch{}}$("voiceModal").style.display="none";}
+function clearVoiceBuffer(){voiceFinalBuffer="";voiceLastInterim="";$("voiceText").textContent="🎙️ Buffer limpio. Sigue hablando...";}
+function productSignature(p){return [String(p.nombre).trim().toUpperCase(),Number(p.cantidad||1),Number(p.precio||0).toFixed(3),String(p.moneda).toUpperCase(),String(p.tipoPrecio||"UNITARIO").toUpperCase()].join("|");}
+async function applyVoiceResultsNow(){
+  if(isApplyingVoice)return;
+  const full=mergeFinalAndInterim(voiceFinalBuffer,voiceLastInterim);
+  if(!full){toast("No se escuchó nada.");return;}
+  isApplyingVoice=true;$("voiceApply").classList.add("loading");$("voiceStatus").textContent="🤖 Interpretando compra...";
+  if(recognition){try{recognition.stop();}catch{}}
+  try{
+    const rate=parseNum($("tasa").value)||1, defaultStore=$("loc").value.trim()||"GENERAL";
+    const r=await fetch("/api/parse-shopping",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({transcript:full,rate,defaultStore})});
+    const data=await r.json(); if(!r.ok)throw new Error(data.error||"Error IA");
+    const store=String(data.local||defaultStore).toUpperCase().trim();$("loc").value=store;
+    const seen=new Set();
+    for(const p of data.products||[]){
+      const sig=productSignature(p);if(seen.has(sig))continue;seen.add(sig);
+      const nombre=String(p.nombre||"").toUpperCase().trim(),cantidad=Math.max(1,Number(p.cantidad||1)),precio=Number(p.precio),moneda=String(p.moneda||"").toUpperCase(),tipo=String(p.tipoPrecio||"UNITARIO").toUpperCase();
+      if(!nombre||!Number.isFinite(precio)||precio<0||!["USD","BS"].includes(moneda))continue;
+      const unit=tipo==="TOTAL"?precio/cantidad:precio;
+      const uUSD=moneda==="USD"?unit:unit/rate, uBS=moneda==="BS"?unit:unit*rate;
+      carrito.push({id:uid(),nombre,local:store,cant:cantidad,uUSD,uBS,tUSD:uUSD*cantidad,tBS:uBS*cantidad});
+    }
+    saveState();calc();toast(`✅ ${(data.products||[]).length} producto(s) interpretados.`);
+    voiceFinalBuffer="";voiceLastInterim="";stopVoiceAssistant();
+  }catch(e){console.error(e);toast("❌ "+e.message);}
+  finally{isApplyingVoice=false;$("voiceApply").classList.remove("loading");$("voiceStatus").textContent="🎙️ Escuchando...";}
+}
+
+function openScan(){receiptDataUrl="";$("scanImage").style.display="none";$("scanPlaceholder").style.display="block";$("scanProcess").style.display="none";$("scanStatus").textContent="";$("scanModal").style.display="flex";}
+function closeScan(){$("scanModal").style.display="none";}
+function previewReceipt(e){
+  const file=e.target.files?.[0];if(!file)return;
+  const reader=new FileReader();reader.onload=()=>{receiptDataUrl=reader.result;$("scanImage").src=reader.result;$("scanImage").style.display="block";$("scanPlaceholder").style.display="none";$("scanProcess").style.display="flex";};reader.readAsDataURL(file);
+}
+async function processReceipt(){
+  if(!receiptDataUrl)return;
+  $("scanProcess").classList.add("loading");$("scanStatus").textContent="🤖 Analizando...";
+  try{
+    const rate=parseNum($("tasa").value)||1, defaultStore=$("loc").value.trim()||"GENERAL";
+    const r=await fetch("/api/scan-receipt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({imageDataUrl:receiptDataUrl,rate,defaultStore})});
+    const data=await r.json();if(!r.ok)throw new Error(data.error||"Error al leer factura");
+    const store=String(data.local||defaultStore).toUpperCase();
+    for(const p of data.products||[]){
+      const q=Math.max(1,Number(p.cantidad||1)),price=Number(p.precio||0),currency=String(p.moneda||"BS").toUpperCase(),type=String(p.tipoPrecio||"UNITARIO").toUpperCase();
+      const unit=type==="TOTAL"?price/q:price,uUSD=currency==="USD"?unit:unit/rate,uBS=currency==="BS"?unit:unit*rate;
+      carrito.push({id:uid(),nombre:String(p.nombre||"PRODUCTO").toUpperCase(),local:store,cant:q,uUSD,uBS,tUSD:uUSD*q,tBS:uBS*q});
+    }
+    $("loc").value=store;saveState();calc();closeScan();toast("✅ Factura agregada al carrito.");
+  }catch(e){$("scanStatus").textContent="❌ "+e.message;}
+  finally{$("scanProcess").classList.remove("loading");}
+}
+function openAI(){$("aiModal").style.display="flex"}function closeAI(){$("aiModal").style.display="none"}
+async function askAI(){
+  const q=$("aiInput").value.trim();if(!q)return;$("aiInput").value="";$("aiBox").textContent="🤖 Pensando...";
+  try{
+    const r=await fetch("/api/assistant",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q,cart:carrito,budget:parseNum($("presu").value),currency:mon,rate:parseNum($("tasa").value)})});
+    const data=await r.json();if(!r.ok)throw new Error(data.error||"Error IA");$("aiBox").textContent=data.text||"Sin respuesta.";
+  }catch(e){$("aiBox").textContent="❌ "+e.message;}
+}
+
+async function refreshBCV(){
+  try{
+    const r=await fetch("https://ve.dolarapi.com/v1/dolares/oficial");
+    if(!r.ok)return;const d=await r.json();
+    if(d&&d.promedio){$("tasa").value=Number(d.promedio).toFixed(2).replace(".",",");saveState();calc();}
+  }catch{}
+}
+function networkState(){document.body.classList.toggle("offline",!navigator.onLine)}
+window.addEventListener("online",networkState);window.addEventListener("offline",networkState);
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(console.error));
+document.addEventListener("dblclick",e=>{ if(e.target.closest(".foot")) openAI(); });
+loadState();networkState();refreshBCV();
+</script>
+</body>
+</html>
